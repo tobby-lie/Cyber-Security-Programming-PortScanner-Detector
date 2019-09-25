@@ -2,7 +2,16 @@ import threading
 import socket
 import time
 import struct
-import copy
+import queue
+
+# Last modified: 9/25/19 @ 4:29PM
+
+my_queue = queue.Queue()
+
+def storeInQueue(f):
+    def wrapper(*args):
+        my_queue.put(f(*args))
+    return wrapper
 
 def portscanner_detector():
 
@@ -36,6 +45,7 @@ def portscanner_detector():
             del dict[x]
     return dict
 
+@storeInQueue
 def fanout_rate():
     dict = portscanner_detector()
 
@@ -121,5 +131,9 @@ def ipv4_dissect(ip_data):
     ip_protocol, source_ip, target_ip = struct.unpack('!9xB2x4s4s', ip_data[:20])
     return ip_protocol, ipv4_format(source_ip), ipv4_format(target_ip), ip_data[20:]
 
+t1 = threading.Thread(target=fanout_rate, args = ())
+t1.start()
 
-y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts = fanout_rate()
+y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts = my_queue.get()
+print(y_list)
+#y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts = fanout_rate()

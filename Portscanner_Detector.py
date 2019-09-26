@@ -47,7 +47,10 @@ def portscanner_detector():
 
 @storeInQueue
 def fanout_rate():
-    dict = portscanner_detector()
+
+    '''t2 = threading.Thread(target=portscanner_detector(), args = ())
+    t2.start()'''
+    #dict = portscanner_detector()
 
     second_increment = 1.
     minute_increment = 60.
@@ -62,47 +65,108 @@ def fanout_rate():
     min_fanouts = 0
     fivemin_fanouts = 0
 
-    y_list = []
-    z_list = []
-    d_list = []
+    y_dict = {}
+    z_dict = {}
+    d_dict = {}
+
+    dict = {}
+
+    connection_tuple = ('192.168.10.145', '192.168.10.138', '1')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.145', '192.168.10.138', '2')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.145', '192.168.10.138', '3')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.145', '192.168.10.138', '4')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.145', '192.168.10.138', '5')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.145', '192.168.10.138', '6')
+    dict[connection_tuple] = 1.2
+
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '1')
+    dict[connection_tuple] = 1.3
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '2')
+    dict[connection_tuple] = 1.4
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '3')
+    dict[connection_tuple] = 1.5
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '4')
+    dict[connection_tuple] = 1.1
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '5')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '6')
+    dict[connection_tuple] = 1.2
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '7')
+    dict[connection_tuple] = 1.6
+    connection_tuple = ('192.168.10.144', '192.168.10.138', '8')
+    dict[connection_tuple] = 1.7
+
+
+    print(dict)
 
     while current_time < 300.:
         # second
         for key, value in dict.items():
             if (value < current_time) and (value > current_time - second_increment):
                 sec_fanouts += 1
-                if key in source_sec:
-                    source_sec[key] += 1
+                if key[0] in source_sec:
+                    source_sec[key[0]] += 1
                 else:
-                    source_sec[key] = 1
+                    source_sec[key[0]] = 1
                 y = {k:v for (k,v) in source_sec.items() if v > 5}
-                y_list.append(y)
+                if y:
+                    for key, val in y.items():
+                        y_dict[key] = val
         # minute
         if current_time % 60 == 0:
             for key, value in dict.items():
                 if (value < current_time) and (value > current_time - minute_increment):
                     min_fanouts += 1
-                    if key in source_min:
-                        source_min[key] += 1
+                    if key[0] in source_min:
+                        source_min[key[0]] += 1
                     else:
-                        source_min[key] = 1
+                        source_min[key[0]] = 1
                     z = {k:v for (k,v) in source_min.items() if v > 100}
-                    z_list.append(z)
+                    if z:
+                        for key, val in z.items():
+                            z_dict[key] = val
         # five minutes
         if current_time % 300 == 0:
             for key, value in dict.items():
                 if (value < current_time) and (value > current_time - fiveminute_increment):
                     fivemin_fanouts += 1
-                    if key in source_fivemin:
-                        source_fivemin[key] += 1
+                    if key[0] in source_fivemin:
+                        source_fivemin[key[0]] += 1
                     else:
-                        source_fivemin[key] = 1
+                        source_fivemin[key[0]] = 1
                     d = {k:v for (k,v) in source_fivemin.items() if v > 300}
-                    d_list.append(d)
+                    if d:
+                        for key, val in d.items():
+                            d_dict[key] = val
         current_time += 1
+    print(y_dict)
+    # exceeds 5 per second
+    if y_dict:
+        for key, val in y_dict.items():
+            print("--------------------------------------------------------")
+            print("port scanner detected on source IP: " + str(key))
+            print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
+            #print("fan-out per 5min: " + str(source_fivemin[key]))
+            print("\n reason: fan-out rate per sec = " + str(source_sec[key]) + " (must be less than 5).")
+            print("--------------------------------------------------------")
+    # exceeds 100 per minute
+    if z_dict:
+        for key, val in z_dict.items():
+            print("port scanner detected on source IP: " + str(key))
+            print("avg. fan-out per sec: " + str(source_sec[key]/60.))
+    # exceeds 300 per 5 minutes
+    if d_dict:
+        for key, val in d_dict.items():
+            print("port scanner detected on source IP: " + str(key))
+            print("avg. fan-out per sec: " + str(source_sec[key]/60.))
 
-    return y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts
-   #print(dict)
+    return y_dict, z_dict, d_dict, sec_fanouts, min_fanouts, fivemin_fanouts, source_sec, source_min, source_fivemin
+    #print(dict)
 
 def tcp_dissect(transport_data):
     ''' extract source and destination port from transport data '''
@@ -134,6 +198,6 @@ def ipv4_dissect(ip_data):
 t1 = threading.Thread(target=fanout_rate, args = ())
 t1.start()
 
-y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts = my_queue.get()
-print(y_list)
+y_dict, z_dict, d_dict, sec_fanouts, min_fanouts, fivemin_fanouts, source_sec, source_min, source_fivemin = my_queue.get()
+#print(min_fanouts)
 #y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts = fanout_rate()

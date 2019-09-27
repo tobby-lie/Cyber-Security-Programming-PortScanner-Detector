@@ -22,11 +22,11 @@ def portscanner_detector():
     start_time = time.time()
     current_time = 0
     # 300 seconds is 5 minutes
-    threshold = 60.
+    threshold = 301.
 
-    while current_time < threshold:
+    #while current_time < threshold:
+    while True:
         print(current_time)
-    #while True:
         ethernet_data, address = packets.recvfrom(65536)
         dest_mac, src_mac, protocol, ip_data = ethernet_dissect(ethernet_data)
 
@@ -40,13 +40,20 @@ def portscanner_detector():
                 dict[connection_tuple] = timestamp
 
         current_time = time.time() - start_time
-        keys = [k for k, v in dict.items() if (current_time - v) > threshold]
+        keys = [k for k, v in dict.items() if (current_time - v) > 300.]
         for x in keys:
             del dict[x]
-    return dict
+        if current_time > threshold:
+            threshold  += threshold
+            temp_dict = dict.copy()
+            t2 = threading.Thread(target=fanout_rate, args=(temp_dict,))
+            t2.start()
+            #current_time = 0.
+        #print(dict)
+    return
 
 @storeInQueue
-def fanout_rate():
+def fanout_rate(dict):
 
     '''t2 = threading.Thread(target=portscanner_detector(), args = ())
     t2.start()'''
@@ -69,7 +76,7 @@ def fanout_rate():
     z_dict = {}
     d_dict = {}
 
-    dict = {}
+    '''dict = {}
 
     connection_tuple = ('192.168.10.145', '192.168.10.138', '1')
     dict[connection_tuple] = 1.2
@@ -99,13 +106,13 @@ def fanout_rate():
     connection_tuple = ('192.168.10.144', '192.168.10.138', '7')
     dict[connection_tuple] = 1.6
     connection_tuple = ('192.168.10.144', '192.168.10.138', '8')
-    dict[connection_tuple] = 1.7
+    dict[connection_tuple] = 1.7'''
 
+    #print(dict)
 
-    print(dict)
-
-    while current_time < 300.:
+    while current_time < 301.:
         # second
+        source_sec = {}
         for key, value in dict.items():
             if (value < current_time) and (value > current_time - second_increment):
                 sec_fanouts += 1
@@ -118,7 +125,8 @@ def fanout_rate():
                     for key, val in y.items():
                         y_dict[key] = val
         # minute
-        if current_time % 60 == 0:
+        if current_time % 60. == 0:
+            source_min = {}
             for key, value in dict.items():
                 if (value < current_time) and (value > current_time - minute_increment):
                     min_fanouts += 1
@@ -131,7 +139,8 @@ def fanout_rate():
                         for key, val in z.items():
                             z_dict[key] = val
         # five minutes
-        if current_time % 300 == 0:
+        if current_time % 300. == 0:
+            source_fivemin = {}
             for key, value in dict.items():
                 if (value < current_time) and (value > current_time - fiveminute_increment):
                     fivemin_fanouts += 1
@@ -143,30 +152,39 @@ def fanout_rate():
                     if d:
                         for key, val in d.items():
                             d_dict[key] = val
-        current_time += 1
-    print(y_dict)
-    # exceeds 5 per second
-    if y_dict:
-        for key, val in y_dict.items():
-            print("--------------------------------------------------------")
-            print("port scanner detected on source IP: " + str(key))
-            print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
-            #print("fan-out per 5min: " + str(source_fivemin[key]))
-            print("\n reason: fan-out rate per sec = " + str(source_sec[key]) + " (must be less than 5).")
-            print("--------------------------------------------------------")
-    # exceeds 100 per minute
-    if z_dict:
-        for key, val in z_dict.items():
-            print("port scanner detected on source IP: " + str(key))
-            print("avg. fan-out per sec: " + str(source_sec[key]/60.))
-    # exceeds 300 per 5 minutes
-    if d_dict:
-        for key, val in d_dict.items():
-            print("port scanner detected on source IP: " + str(key))
-            print("avg. fan-out per sec: " + str(source_sec[key]/60.))
 
-    return y_dict, z_dict, d_dict, sec_fanouts, min_fanouts, fivemin_fanouts, source_sec, source_min, source_fivemin
-    #print(dict)
+        # exceeds 5 per second
+        #   WILL NEED TO MAKE YET ANOTHER SET OF DICTS TO HOLD ALL KEY VALUE
+        #   PAIRS THAT FIT THESE CRITERIA
+        if y_dict:
+            for key, val in y_dict.items():
+                print("--------------------------------------------------------")
+                print("port scanner detected on source IP: " + str(key))
+                print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
+                #print("fan-out per 5min: " + str(source_fivemin[key]))
+                print("\n reason: fan-out rate per sec = " + str(source_sec[key]) + " (must be less than 5).")
+                print("--------------------------------------------------------")
+        # exceeds 100 per minute
+        if z_dict:
+            for key, val in z_dict.items():
+                print("--------------------------------------------------------")
+                print("port scanner detected on source IP: " + str(key))
+                print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
+                #print("fan-out per 5min: " + str(source_fivemin[key]))
+                print("\n reason: fan-out rate per min= " + str(source_min[key]) + " (must be less than 100).")
+                print("--------------------------------------------------------")
+        # exceeds 300 per 5 minutes
+        if d_dict:
+            for key, val in d_dict.items():
+                print("--------------------------------------------------------")
+                print("port scanner detected on source IP: " + str(key))
+                print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
+                #print("fan-out per 5min: " + str(source_fivemin[key]))
+                print("\n reason: fan-out rate per five min = " + str(source_fivemin[key]) + " (must be less than 300).")
+                print("--------------------------------------------------------")
+        current_time += 1
+    #print(y_dict)
+    return
 
 def tcp_dissect(transport_data):
     ''' extract source and destination port from transport data '''
@@ -195,9 +213,12 @@ def ipv4_dissect(ip_data):
     ip_protocol, source_ip, target_ip = struct.unpack('!9xB2x4s4s', ip_data[:20])
     return ip_protocol, ipv4_format(source_ip), ipv4_format(target_ip), ip_data[20:]
 
-t1 = threading.Thread(target=fanout_rate, args = ())
+t1 = threading.Thread(target=portscanner_detector, args=())
 t1.start()
 
-y_dict, z_dict, d_dict, sec_fanouts, min_fanouts, fivemin_fanouts, source_sec, source_min, source_fivemin = my_queue.get()
+'''t1 = threading.Thread(target=fanout_rate, args = ())
+t1.start()
+
+y_dict, z_dict, d_dict, sec_fanouts, min_fanouts, fivemin_fanouts, source_sec, source_min, source_fivemin = my_queue.get()'''
 #print(min_fanouts)
 #y_list, z_list, d_list, sec_fanouts, min_fanouts, fivemin_fanouts = fanout_rate()

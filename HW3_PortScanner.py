@@ -3,6 +3,8 @@
 import socket
 import time
 
+# updated 9/26/19 @ 6:48PM
+
 # make a socket instance for tcp and pass it 2 parameters
 # AF_INET is the address family ipv4
 # SOCK_STREAM means connection oriented TCP protocol

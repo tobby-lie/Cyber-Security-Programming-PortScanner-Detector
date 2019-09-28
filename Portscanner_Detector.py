@@ -131,8 +131,8 @@ def fanout_rate(dict):
                 print("--------------------------------------------------------")
                 print("port scanner detected on source IP: " + str(key))
                 print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_sec[key]*60.))
-                print("fan-out per 5min: " + str(source_fivemin[key]))
-                print("\n reason: fan-out rate per sec = " + str(source_sec[key]*300.) + " (must be less than 5).")
+                print("fan-out per 5min: " + str(source_sec[key]*300.))
+                print("\n reason: fan-out rate per sec = " + str(source_sec[key]/60.) + " (must be less than 5).")
                 print("--------------------------------------------------------")
             delete = [k for k, v in  y_dict.items() if k == key]
             for key in delete:

@@ -22,7 +22,7 @@ def portscanner_detector():
     start_time = time.time()
     current_time = 0
     # 300 seconds is 5 minutes
-    threshold = 301.
+    threshold = 300.
 
     #while current_time < threshold:
     while True:
@@ -38,7 +38,7 @@ def portscanner_detector():
                 connection_tuple = (src_ip, dest_ip, dest_port)
                 timestamp = (time.time() - start_time)
                 dict[connection_tuple] = timestamp
-
+                #print(str(connection_tuple) + str(timestamp))
         current_time = time.time() - start_time
         keys = [k for k, v in dict.items() if (current_time - v) > 300.]
         for x in keys:
@@ -76,41 +76,11 @@ def fanout_rate(dict):
     z_dict = {}
     d_dict = {}
 
-    '''dict = {}
-
-    connection_tuple = ('192.168.10.145', '192.168.10.138', '1')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.145', '192.168.10.138', '2')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.145', '192.168.10.138', '3')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.145', '192.168.10.138', '4')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.145', '192.168.10.138', '5')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.145', '192.168.10.138', '6')
-    dict[connection_tuple] = 1.2
-
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '1')
-    dict[connection_tuple] = 1.3
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '2')
-    dict[connection_tuple] = 1.4
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '3')
-    dict[connection_tuple] = 1.5
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '4')
-    dict[connection_tuple] = 1.1
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '5')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '6')
-    dict[connection_tuple] = 1.2
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '7')
-    dict[connection_tuple] = 1.6
-    connection_tuple = ('192.168.10.144', '192.168.10.138', '8')
-    dict[connection_tuple] = 1.7'''
-
-    #print(dict)
+    print(len(dict))
+    time.sleep(10)
 
     while current_time < 301.:
+
         # second
         source_sec = {}
         for key, value in dict.items():
@@ -160,28 +130,37 @@ def fanout_rate(dict):
             for key, val in y_dict.items():
                 print("--------------------------------------------------------")
                 print("port scanner detected on source IP: " + str(key))
-                print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
-                #print("fan-out per 5min: " + str(source_fivemin[key]))
-                print("\n reason: fan-out rate per sec = " + str(source_sec[key]) + " (must be less than 5).")
+                print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_sec[key]*60.))
+                print("fan-out per 5min: " + str(source_fivemin[key]))
+                print("\n reason: fan-out rate per sec = " + str(source_sec[key]*300.) + " (must be less than 5).")
                 print("--------------------------------------------------------")
+            delete = [k for k, v in  y_dict.items() if k == key]
+            for key in delete:
+                del y_dict[key]
         # exceeds 100 per minute
         if z_dict:
             for key, val in z_dict.items():
                 print("--------------------------------------------------------")
                 print("port scanner detected on source IP: " + str(key))
                 print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
-                #print("fan-out per 5min: " + str(source_fivemin[key]))
+                print("fan-out per 5min: " + str((source_min[key]/1.)*5))
                 print("\n reason: fan-out rate per min= " + str(source_min[key]) + " (must be less than 100).")
                 print("--------------------------------------------------------")
+            delete = [k for k, v in  z_dict.items() if k == key]
+            for key in delete:
+                del z_dict[key]
         # exceeds 300 per 5 minutes
         if d_dict:
             for key, val in d_dict.items():
                 print("--------------------------------------------------------")
                 print("port scanner detected on source IP: " + str(key))
                 print("avg. fan-out per sec: " + str(source_sec[key]/60.) + ", avg fan-out per min: " + str(source_min[key]/1.))
-                #print("fan-out per 5min: " + str(source_fivemin[key]))
+                print("fan-out per 5min: " + str(source_fivemin[key]))
                 print("\n reason: fan-out rate per five min = " + str(source_fivemin[key]) + " (must be less than 300).")
                 print("--------------------------------------------------------")
+            delete = [k for k, v in  d_dict.items() if k == key]
+            for key in delete:
+                del d_dict[key]
         current_time += 1
     #print(y_dict)
     return

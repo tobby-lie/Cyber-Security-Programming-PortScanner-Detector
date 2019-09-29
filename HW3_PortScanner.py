@@ -3,6 +3,8 @@
 import socket
 import time
 
+# last updated: 9/29/19 @ 2:12AM
+
 # make a socket instance for tcp and pass it 2 parameters
 # AF_INET is the address family ipv4
 # SOCK_STREAM means connection oriented TCP protocol
@@ -54,13 +56,7 @@ def tcp_scan(time_interval):
             time.sleep(time_interval)
         count += 1
 
-# try first 1024 port numbers
-'''for portNumber in range(1, 1024):
-    udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # if connection to portNumber is successful
-    # print out that port is open
-    if udp_scanner(portNumber):
-        print('[*]Port', portNumber, '/udp', 'is open')
-    udp_sock.close()'''
+time_interval = input("Time interval in seconds: ")
 while True:
-    tcp_scan(1.0)
+    tcp_scan(float(time_interval))
+

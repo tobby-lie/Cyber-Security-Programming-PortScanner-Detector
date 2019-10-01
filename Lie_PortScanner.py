@@ -3,7 +3,7 @@
 import socket
 import time
 
-# last updated: 9/29/19 @ 2:12AM
+# last updated: 10/1/19 @ 4:12PM
 
 # make a socket instance for tcp and pass it 2 parameters
 # AF_INET is the address family ipv4
@@ -29,22 +29,14 @@ def tcp_scanner(port):
         ''' if unsuccessful return False '''
         return False
 
-def udp_scanner(port):
-    ''' try-except block to ensure we don't throw any errors if issues arise'''
-    ''' here we attempt to connect to target ip and its port'''
-    try:
-        ''' if successful connection return True '''
-        udp_sock.connect((target, port))
-        return True
-    except:
-        ''' if unsuccessful return False '''
-        return False
-
 # try first 1024 port numbers
 def tcp_scan(time_interval):
+    # keep count of which port is being scanned
     count = 0
-    for portNumber in range(1, 4096):
+    # 65535 tcp ports
+    for portNumber in range(1, 65535):
         print(count)
+        # wait between every 2 consecutive connections
         if count % 2 == 0:
             tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # if connection to portNumber is successful
@@ -56,7 +48,9 @@ def tcp_scan(time_interval):
             time.sleep(time_interval)
         count += 1
 
+# get time interval from user for wait time to respect
 time_interval = input("Time interval in seconds: ")
+# keep scanning
 while True:
     tcp_scan(float(time_interval))
 

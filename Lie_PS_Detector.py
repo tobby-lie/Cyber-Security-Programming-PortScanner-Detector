@@ -6,10 +6,12 @@ import time
 import struct
 import queue
 
-# Last modified: 10/4/19 @ 4:05PM
+# Last modified: 10/4/19 @ 4:57PM
 
 # queue used to hold values to be returned from a thread
 my_queue = queue.Queue()
+
+lock = threading.Lock()
 
 def storeInQueue(f):
     ''' utilized to contain values to be returned from thread if there are return values '''
@@ -59,10 +61,6 @@ def portscanner_detector():
         temp_dict = dict.copy()
         t = threading.Thread(target=keys_for_delete, args=(dict, current_time, ))
         t.start()
-        keys = my_queue.get()
-        # delete all elements that have existed for more than 5 minutes
-        for x in keys:
-            del dict[x]
         # if current time has gone past threshold which is 5 minutes in our case
         # then check for fan-out for second, minute and five minute
         # increase threshold by itself in order to continue this pattern
@@ -105,8 +103,11 @@ def keys_for_delete(dict, current_time):
     ''' stored in queue to return thread return values
         returns keys to be deleted that are over 5 minutes
     '''
+    lock.acquire()
     keys = [k for k, v in dict.items() if abs(current_time - v) > 300.]
-    return keys
+    for x in keys:
+        del dict[x]
+    lock.release()
 
 def fanout_rate_sec(dict, start, end):
     ''' prints out fan out calculations for each second that passes '''

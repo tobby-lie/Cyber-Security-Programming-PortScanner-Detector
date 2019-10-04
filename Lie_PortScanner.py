@@ -3,7 +3,7 @@
 import socket
 import time
 
-# last updated: 10/1/19 @ 4:12PM
+# last updated: 10/4/19 @ 4:06PM
 
 # make a socket instance for tcp and pass it 2 parameters
 # AF_INET is the address family ipv4
@@ -53,4 +53,3 @@ time_interval = input("Time interval in seconds: ")
 # keep scanning
 while True:
     tcp_scan(float(time_interval))
-

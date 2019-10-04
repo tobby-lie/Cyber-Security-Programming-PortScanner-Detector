@@ -6,7 +6,7 @@ import time
 import struct
 import queue
 
-# Last modified: 10/1/19 @ 4:11PM
+# Last modified: 10/4/19 @ 4:05PM
 
 # queue used to hold values to be returned from a thread
 my_queue = queue.Queue()
@@ -57,7 +57,7 @@ def portscanner_detector():
         current_time = time.time() - start_time
         # check dict for all keys that have connection times that have elapsed over 5 minutes
         temp_dict = dict.copy()
-        t = threading.Thread(target=keys_for_delete, args=(temp_dict, current_time, ))
+        t = threading.Thread(target=keys_for_delete, args=(dict, current_time, ))
         t.start()
         keys = my_queue.get()
         # delete all elements that have existed for more than 5 minutes
@@ -68,8 +68,8 @@ def portscanner_detector():
         # increase threshold by itself in order to continue this pattern
         if current_time > threshold_sec:
             # print current time and size of dict just as a way to monitor progress
-            print("current time: " + str(current_time))
-            print("size of dict: " + str(len(dict)))
+            print("current time: " + str(current_time) + " seconds")
+            print("size of dict: " + str(len(dict)) + " elements")
             # increment threshold_sec in order to continue checking every second
             threshold_sec += 1.
             # use a copy as to not alter the original dict in use
